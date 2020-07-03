@@ -45,7 +45,7 @@ pub fn orthographic(left: f64, right: f64, bottom: f64, top: f64, near: f64, far
 mod tests {
     use super::*;
     use crate::graphics::{
-        utils::display_matrix,
+        utils::display_edge_matrix,
         matrix::transform
     };
 
@@ -59,15 +59,15 @@ mod tests {
         let t = Matrix::ident(4)
         // .mul(&transform::rotatex(30.))
         // .mul(&transform::rotatey(-20.))
-        .mul(&transform::mv(0., 250., 250.)
+        ._mul(&transform::mv(0., 250., 250.)
         
     );
-        let model = model.mul(&t);
+        let model = model._mul(&t);
 
         // now apply perspective
-        let mut model = model.mul(&perspective(90., 1., 1., 500.));
+        let mut model = model._mul(&perspective(90., 1., 1., 500.));
         model.correct_projection();
 
-        display_matrix(&model, true);
+        display_edge_matrix(&model, true);
     }
 }

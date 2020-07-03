@@ -23,12 +23,12 @@ fn main() {
         if i < 6 { mv += 150. } else { mv -= 150. };
 
         let t = Matrix::ident(4)
-            .mul(&transform::rotatey(10. * i as f64 - total as f64 * 5.))
-            .mul(&transform::mv(0., 0., mv))
+            ._mul(&transform::rotatey(10. * i as f64 - total as f64 * 5.))
+            ._mul(&transform::mv(0., 0., mv))
             ;
-        let model = model.mul(&t);
+        let model = model._mul(&t);
         // now apply perspective
-        let mut model = model.mul(&projections::perspective(90., 1., 1., 600.));
+        let mut model = model._mul(&projections::perspective(90., 1., 1., 600.));
         model.correct_projection();
         img.render_ndc_edges_n1to1(&model);
         img.write_binary(format!("img{}.ppm", i).as_str()).expect("Error writing to file");

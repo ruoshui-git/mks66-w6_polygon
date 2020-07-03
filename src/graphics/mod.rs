@@ -9,14 +9,17 @@ pub mod utils;
 use std::convert::Into;
 use std::convert::TryInto;
 
-use std::io::{self, prelude::Write};
+use std::{
+    fmt::Debug,
+    io::{self, prelude::Write},
+};
 
 // re-exports
 pub use colors::{HSL, RGB};
 pub use matrix::Matrix;
 
 // internal use
-use utils::{create_file, polar_to_xy, mapper};
+use utils::{create_file, mapper, polar_to_xy};
 
 pub struct PPMImg {
     height: u32,
@@ -28,6 +31,28 @@ pub struct PPMImg {
     pub fg_color: RGB,
     pub bg_color: RGB,
     data: Vec<RGB>,
+}
+
+/// Two images are eq iff their dimensions, depth, and image data are eq
+impl PartialEq for PPMImg {
+    fn eq(&self, other: &Self) -> bool {
+        self.height == other.height
+            && self.width == other.width
+            && self.depth == other.depth
+            && self.data == other.data
+    }
+}
+
+impl Eq for PPMImg {}
+
+impl Debug for PPMImg {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "PPMImg {{ {} by {}, depth={} }}",
+            self.height, self.width, self.depth
+        )
+    }
 }
 
 // impl constructor and exporter
@@ -137,9 +162,13 @@ impl PPMImg {
         } else {
             y
         };
-        
+
         // invert y based on config
-        let y = if self.invert_y { self.width as i32 - y - 1 } else { y };
+        let y = if self.invert_y {
+            self.width as i32 - y - 1
+        } else {
+            y
+        };
 
         // now we know that x and y are positive, we can cast without worry
         Some((y * self.width as i32 + x).try_into().unwrap())
@@ -346,7 +375,7 @@ impl PPMImg {
         }
     }
 
-    pub fn render_ndc_edges_n1to1(&mut self, m:&Matrix) {
+    pub fn render_ndc_edges_n1to1(&mut self, m: &Matrix) {
         let map_width = mapper(-1., 1., 0., self.width as f64);
         let map_height = mapper(-1., 1., 0., self.height as f64);
         let mut iter = m.iter_by_row();
@@ -357,7 +386,34 @@ impl PPMImg {
                 None => panic!("Number of edges must be a multiple of 2"),
             };
 
-            self.draw_line(map_width(-x0), map_height(y0), map_width(-x1), map_height(y1));
+            self.draw_line(
+                map_width(-x0),
+                map_height(y0),
+                map_width(-x1),
+                map_height(y1),
+            );
+        }
+    }
+}
+
+// draw polygon matrix
+impl PPMImg {
+    pub fn render_polygon_matrix(&mut self, m: &Matrix) {
+        let mut iter = m.iter_by_row();
+        while let Some(point) = iter.next() {
+            let (x0, y0) = (point[0], point[1]);
+            let (x1, y1) = match iter.next() {
+                Some(p1) => (p1[0], p1[1]),
+                None => panic!("Number of points must be a multiple of 2 for edge matrix"),
+            };
+            let (x2, y2) = match iter.next() {
+                Some(p2) => (p2[0], p2[1]),
+                None => panic!("Number of points must be a multiple of 3 for polygon matrix"),
+            };
+
+            self.draw_line(x0, y0, x1, y1);
+            self.draw_line(x1, y1, x2, y2);
+            self.draw_line(x2, y2, x0, y0);
         }
     }
 }
@@ -392,5 +448,35 @@ impl PPMImg {
             }
             assert!(points.len() <= (self.width * self.height).try_into().unwrap());
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+
+    #[test]
+    fn test_render_polygon_triangle() {
+        let (x0, y0, z0) = (10., 10., 10.);
+        let (x1, y1, z1) = (100., 100., 100.);
+        let (x2, y2, z2) = (0., 50., 10.);
+
+        let (h, w, d) = (500, 500, 255);
+        let mut img_ln = PPMImg::new(h, w, d);
+        let mut img_polygon = PPMImg::new(h, w, d);
+
+        let mut m = Matrix::new_polygon_matrix();
+        m.append_polygon((x0, y0, z0), (x1, y1, z1), (x2, y2, z2));
+
+        img_polygon.render_polygon_matrix(&m);
+        img_ln.draw_line(x0, y0, x1, y1);
+        img_ln.draw_line(x1, y1, x2, y2);
+        img_ln.draw_line(x2, y2, x0, y0);
+
+        assert_eq!(
+            img_ln, img_polygon,
+            "Expect equivalent images by adding lines vs. drawing polygon"
+        );
     }
 }

@@ -101,13 +101,13 @@ impl DWScript {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let scale: Vec<f64> = parse_floats(dline);
                     assert_eq!(3, scale.len());
-                    self.trans = self.trans.mul(&transform::scale(scale[0], scale[1], scale[2]));
+                    self.trans = self.trans._mul(&transform::scale(scale[0], scale[1], scale[2]));
                 }
                 "move" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let mv: Vec<f64> = parse_floats(dline);
                     assert_eq!(3, mv.len());
-                    self.trans = self.trans.mul(&transform::mv(mv[0], mv[1], mv[2]));
+                    self.trans = self.trans._mul(&transform::mv(mv[0], mv[1], mv[2]));
                 }
                 "rotate" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
@@ -120,10 +120,10 @@ impl DWScript {
                         "z" => transform::rotatez(deg),
                         _ => panic!("Unknown rotation axis on line {}", _dnum),
                     };
-                    self.trans = self.trans.mul(&rotate);
+                    self.trans = self.trans._mul(&rotate);
                 }
                 "apply" => {
-                    self.edges = self.edges.mul(&self.trans);
+                    self.edges = self.edges._mul(&self.trans);
                 }
                 "display" => {
                     self.img.clear();

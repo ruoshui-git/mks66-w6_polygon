@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 //! Generic matrix stuff
 
-use std::fmt;
+use std::{ops::{MulAssign, Mul}, fmt};
 
 // standalone
 pub mod transform;
@@ -120,7 +120,7 @@ impl Matrix {
     }
 
     /// Multiplies self matrix by other matrix
-    pub fn mul(&self, other: &Self) -> Self {
+    pub fn _mul(&self, other: &Self) -> Self {
         // self * other -> new
         assert_eq!(self.ncols, other.nrows, "ncols of m1 must == nrows of m2");
         let (frows, fcols) = (self.nrows, other.ncols);
@@ -150,8 +150,48 @@ impl Matrix {
     }
 
     pub fn mul_mut_b(a: &Matrix, b: &mut Matrix) {
-        *b = a.mul(b);
+        *b = a._mul(b);
         // println!("result: {}", b);
+    }
+}
+
+impl Mul for &Matrix {
+    type Output = Matrix;
+    fn mul(self, rhs: Self) -> Self::Output {
+        self._mul(rhs)
+    }
+}
+
+impl Mul<Matrix> for &Matrix {
+    type Output = Matrix;
+    fn mul(self, rhs: Matrix) -> Self::Output {
+        self._mul(&rhs)
+    }
+}
+
+impl Mul<&Matrix> for Matrix {
+    type Output = Matrix;
+    fn mul(self, rhs: &Matrix) -> Self::Output {
+        self._mul(rhs)
+    }
+}
+
+impl Mul for Matrix {
+    type Output = Matrix;
+    fn mul(self, rhs: Self) -> Self::Output {
+        self._mul(&rhs)
+    }
+}
+
+impl MulAssign for Matrix {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = self._mul(&rhs);
+    }
+}
+
+impl MulAssign<&Matrix> for Matrix {
+    fn mul_assign(&mut self, rhs: &Matrix) {
+        *self = self._mul(&rhs)
     }
 }
 
@@ -250,8 +290,8 @@ mod tests {
     fn multiply_with_method() {
         let m1 = Matrix::new(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
         let m2 = Matrix::new(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);
-        let mp = m1.mul(&m2);
-        println!("{} mul by {} = {}", m1, m2, m1.mul(&m2));
+        let mp = m1._mul(&m2);
+        println!("{} mul by {} = {}", m1, m2, m1._mul(&m2));
         assert!(matrix_equal(
             &mp,
             &Matrix::new(2, 2, vec![58.0, 64.0, 139.0, 154.0,])

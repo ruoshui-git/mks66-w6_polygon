@@ -1,5 +1,5 @@
 use super::Matrix;
-use crate::graphics::{utils, parametrics::Parametric};
+use crate::graphics::{parametrics::Parametric, utils};
 use std::f64::consts;
 
 // draw parametric
@@ -34,27 +34,28 @@ impl Matrix {
         );
     }
 
-
     /// Add a cubic Bezier curve
     /// # Arguments
     /// `p[0-3]` - control points
     pub fn add_bezier3(&mut self, p0: (f64, f64), p1: (f64, f64), p2: (f64, f64), p3: (f64, f64)) {
-
         let (ax, bx, cx, dx) = utils::compute_bezier3_coef(p0.0, p1.0, p2.0, p3.0);
         let (ay, by, cy, dy) = utils::compute_bezier3_coef(p0.1, p1.1, p2.1, p3.1);
         self.add_parametric(
-            |t: f64| ax * t*t*t + bx * t * t + cx * t + dx, 
-            |t: f64| ay * t*t*t + by * t * t + cy * t + dy, 
-            0.0, 0.001);
+            |t: f64| ax * t * t * t + bx * t * t + cx * t + dx,
+            |t: f64| ay * t * t * t + by * t * t + cy * t + dy,
+            0.0,
+            0.001,
+        );
     }
 
     pub fn add_hermite3(&mut self, p0: (f64, f64), p1: (f64, f64), r0: (f64, f64), r1: (f64, f64)) {
-        
         let (ax, bx, cx, dx) = utils::compute_hermite3_coef(p0.0, p1.0, r0.0, r1.0);
         let (ay, by, cy, dy) = utils::compute_hermite3_coef(p0.1, p1.1, r0.1, r1.1);
         self.add_parametric(
-            |t: f64| ax * t*t*t + bx * t * t + cx * t + dx, 
-            |t: f64| ay * t*t*t + by * t * t + cy * t + dy, 
-            0.0, 0.0001);
+            |t: f64| ax * t * t * t + bx * t * t + cx * t + dx,
+            |t: f64| ay * t * t * t + by * t * t + cy * t + dy,
+            0.0,
+            0.0001,
+        );
     }
 }

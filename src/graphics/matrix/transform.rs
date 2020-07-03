@@ -1,7 +1,7 @@
 use super::Matrix;
 
 // generate transformation matrices
-/// Generate a translate matrix with (dx, dy, dz)
+/// Generate a translation matrix with (dx, dy, dz)
 pub fn mv(dx: f64, dy: f64, dz: f64) -> Matrix {
     let mut m = Matrix::ident(4);
 
@@ -33,10 +33,10 @@ pub fn scale(sx: f64, sy: f64, sz: f64) -> Matrix {
             4,
             4,
             vec![ 
-                1.0, 0.0, 0.0, 0.0, 
-                0.0, a.cos(), -a.sin(), 0.0, 0.0, 
-                a.sin(), a.cos(), 0.0, 
-                0.0, 0.0, 0.0, 1.0,
+                1.0,        0.0,        0.0,      0.0, 
+                0.0,        a.cos(),    -a.sin(), 0.0, 
+                0.0,        a.sin(),    a.cos(),  0.0, 
+                0.0,        0.0,        0.0,      1.0,
             ],
         )
     }

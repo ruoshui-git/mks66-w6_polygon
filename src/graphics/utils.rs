@@ -44,18 +44,11 @@ pub(crate) fn compute_hermite3_coef(p0: f64, p1: f64, r0: f64, r1: f64) -> (f64,
     )
 }
 
-use crate::graphics::{PPMImg, Matrix};
+use crate::graphics::{Matrix, PPMImg};
 use std::{fs, process::Command};
 
-pub(crate) fn display_matrix(m: &Matrix, ndc: bool) {
-    let mut img = PPMImg::new(500, 500, 225);
+pub(crate) fn display_ppm(img: &PPMImg) {
     let tmpfile_name = "tmp.ppm";
-    if ndc {
-        img.render_ndc_edges_n1to1(m);
-    }
-    else {
-        img.render_edge_matrix(m);
-    }
     img.write_binary(tmpfile_name)
         .expect("Error writing to file");
 
@@ -67,6 +60,28 @@ pub(crate) fn display_matrix(m: &Matrix, ndc: bool) {
     let mut display = cmd.arg("-flip").arg(tmpfile_name).spawn().unwrap();
     let _result = display.wait().unwrap();
     fs::remove_file(tmpfile_name).expect("Error removing tmp file");
+}
+
+/// Convenience method to display an edge matrix for testing purposes
+pub(crate) fn display_edge_matrix(m: &Matrix, ndc: bool) {
+    let mut img = PPMImg::new(500, 500, 225);
+    if ndc {
+        img.render_ndc_edges_n1to1(m);
+    } else {
+        img.render_edge_matrix(m);
+    }
+    display_ppm(&img);
+}
+
+/// Convenience method  to display polygon matrix for testing purposes
+pub(crate) fn display_polygon_matrix(m: &Matrix, ndc: bool) {
+    let mut img = PPMImg::new(500, 500, 225);
+    if ndc {
+        unimplemented!("Displaying polygon matrix in ndc is not implemented.");
+    } else {
+        img.render_polygon_matrix(m);
+    }
+    display_ppm(&img);
 }
 
 /// Returns a mapper function that maps value from one range to another
