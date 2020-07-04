@@ -1,7 +1,8 @@
 use crate::graphics::{
-    utils::{mapper, polar_to_xy},
-    RGB,
     matrix::Matrix,
+    utils::{mapper, polar_to_xy},
+    vector::Vec3,
+    RGB,
 };
 
 // mod turtle;
@@ -10,7 +11,7 @@ use crate::graphics::{
 pub trait Screen {
     /// Plot a point on the screen at (`x`, `y`), must be impl'ed
     fn plot(&mut self, x: i32, y: i32);
-    
+
     // fn index(&self, x: i32, y: i32) -> Option<usize>;
     fn set_fg_color(&mut self, color: RGB);
     fn set_bg_color(&mut self, color: RGB);
@@ -129,7 +130,7 @@ pub trait Screen {
     }
 
     //----------------------------------------- render edge matrix on screen
-    
+
     /// Draws an edge matrix
     ///
     /// Number of edges must be a multiple of 2
@@ -167,32 +168,42 @@ pub trait Screen {
     }
 
     /// Renders polygon matrix `m` onto screen.
+    ///
+    /// Removes hidden surface with back-face culling
     fn render_polygon_matrix(&mut self, m: &Matrix) {
+        // view vector for now: v = <0, 0, 1>, not needed for computation
+
         let mut iter = m.iter_by_row();
         while let Some(point) = iter.next() {
-            let (x0, y0) = (point[0], point[1]);
-            let (x1, y1) = match iter.next() {
-                Some(p1) => (p1[0], p1[1]),
+            let (x0, y0, z0) = (point[0], point[1], point[2]);
+            let (x1, y1, z1) = match iter.next() {
+                Some(p1) => (p1[0], p1[1], p1[2]),
                 None => panic!("Number of points must be a multiple of 2 for edge matrix"),
             };
-            let (x2, y2) = match iter.next() {
-                Some(p2) => (p2[0], p2[1]),
+            let (x2, y2, z2) = match iter.next() {
+                Some(p2) => (p2[0], p2[1], p2[2]),
                 None => panic!("Number of points must be a multiple of 3 for polygon matrix"),
             };
 
-            self.draw_line(x0, y0, x1, y1);
-            self.draw_line(x1, y1, x2, y2);
-            self.draw_line(x2, y2, x0, y0);
+            let v0 = Vec3(x0, y0, z0);
+            let v1 = Vec3(x1, y1, z1);
+            let v2 = Vec3(x2, y2, z2);
+
+            let vn = (v1 - v0).cross(v2 - v0);
+
+            if vn.2 > 0. {
+                self.draw_line(x0, y0, x1, y1);
+                self.draw_line(x1, y1, x2, y2);
+                self.draw_line(x2, y2, x0, y0);
+            }
         }
     }
-
 }
-
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::PPMImg;
+    use super::*;
 
     #[test]
     fn test_render_polygon_triangle() {

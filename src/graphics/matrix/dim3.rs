@@ -197,32 +197,31 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::graphics::{
-        matrix::transform,
-        utils::display_polygon_matrix,
-    };
+    use crate::graphics::{matrix::transform, utils::display_polygon_matrix};
 
     #[test]
     fn draw_sphere() {
         let mut m = Matrix::new_polygon_matrix();
-        m.add_sphere((250., 250., 0.), 250.);
-        // m *= transform::rotatex(40.) * transform::rotatey(30.);
+        m.add_sphere((250., 250., 0.), 400.);
+        m *= transform::rotatex(40.) * transform::rotatey(90.);
         println!("len of array: {}", m.data.len());
         display_polygon_matrix(&m, false);
     }
 
     #[test]
     fn test_no_degenerate_triangles_in_sphere() {
-        let mut m = Matrix::new_polygon_matrix();
-        m.add_sphere((0., 0., 0.), 0.3);
+        for radius in (0..1000).into_iter().step_by(100) {
+            let mut m = Matrix::new_polygon_matrix();
+            m.add_sphere((0., 0., 0.), radius as f64 + 0.3);
 
-        for chunk in m.data.chunks_exact(m.ncols * 3) {
-            if let [x0, y0, z0, _w0, x1, y1, z1, _w1, x2, y2, z2, _w2] = chunk {
-                assert_ne!((x0, y0, z0), (x1, y1, z1));
-                assert_ne!((x1, y1, z1), (x2, y2, z2));
-                assert_ne!((x0, y0, z0), (x2, y2, z2));
-            } else {
-                panic!("Something is wrong");
+            for chunk in m.data.chunks_exact(m.ncols * 3) {
+                if let [x0, y0, z0, _w0, x1, y1, z1, _w1, x2, y2, z2, _w2] = chunk {
+                    assert_ne!((x0, y0, z0), (x1, y1, z1));
+                    assert_ne!((x1, y1, z1), (x2, y2, z2));
+                    assert_ne!((x0, y0, z0), (x2, y2, z2));
+                } else {
+                    panic!("Something is wrong");
+                }
             }
         }
     }
