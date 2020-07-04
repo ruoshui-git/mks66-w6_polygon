@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
+use crate::graphics::screen::Screen;
+
 pub(crate) fn create_file(filepath: &str) -> BufWriter<File> {
     let path = Path::new(filepath);
     let display = path.display();

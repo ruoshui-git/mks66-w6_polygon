@@ -66,7 +66,7 @@ mod tests {
 
         // now apply perspective
         let mut model = model._mul(&perspective(90., 1., 1., 500.));
-        model.correct_projection();
+        model.perspective_divide();
 
         display_edge_matrix(&model, true);
     }

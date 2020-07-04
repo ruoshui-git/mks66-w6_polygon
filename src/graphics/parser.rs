@@ -40,7 +40,7 @@ use std::process::Command;
 
 use super::{
     matrix::{transform, Matrix},
-    PPMImg,
+    PPMImg, screen::Screen,
 };
 
 pub struct DWScript {

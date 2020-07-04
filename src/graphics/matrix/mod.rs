@@ -1,16 +1,19 @@
 #![allow(dead_code)]
 //! Generic matrix stuff
 
-use std::{ops::{MulAssign, Mul}, fmt};
+use std::{
+    fmt,
+    ops::{Mul, MulAssign},
+};
 
 // standalone
-pub mod transform;
 pub mod projections;
+pub mod transform;
 
 // impl on Matrix
-pub mod parametrics;
-pub mod dim3;
 pub mod dim2;
+pub mod dim3;
+pub mod parametrics;
 
 #[derive(Clone, Debug)]
 /// Row major rectangular matrix
@@ -51,7 +54,6 @@ impl Matrix {
         );
         Matrix { nrows, ncols, data }
     }
-
 
     pub fn get(&self, row: usize, col: usize) -> Option<f64> {
         if row > self.nrows || col > self.ncols {
@@ -106,8 +108,7 @@ impl Matrix {
         self.data.as_slice().chunks(self.ncols)
     }
 
-    pub fn mut_iter_by_row(&mut self) -> impl Iterator<Item=&mut [f64]>
-    {
+    pub fn mut_iter_by_row(&mut self) -> impl Iterator<Item = &mut [f64]> {
         self.data.as_mut_slice().chunks_exact_mut(self.ncols)
     }
 }

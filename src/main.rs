@@ -2,7 +2,8 @@ mod graphics;
 
 use graphics::{
     matrix::{projections, transform, Matrix},
-    PPMImg,
+    PPMImg, screen::Screen,
+    
 };
 
 // # compilation:
@@ -29,7 +30,7 @@ fn main() {
         let model = model._mul(&t);
         // now apply perspective
         let mut model = model._mul(&projections::perspective(90., 1., 1., 600.));
-        model.correct_projection();
+        model.perspective_divide();
         img.render_ndc_edges_n1to1(&model);
         img.write_binary(format!("img{}.ppm", i).as_str()).expect("Error writing to file");
         img.clear();

@@ -73,7 +73,7 @@ pub fn rotatez(angle_deg: f64) -> Matrix {
 
 impl Matrix {
     /// Correct edges after projection by dividing all values of point by w
-    pub fn correct_projection(&mut self) {
+    pub fn perspective_divide(&mut self) {
         for point in self.mut_iter_by_row() {
             let (x, y, z, w) = (point[0], point[1], point[2], point[3]);
             point[0] = x / w;
