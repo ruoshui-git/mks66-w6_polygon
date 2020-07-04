@@ -34,19 +34,19 @@
 /// See the file script for an example of the file format
 ///
 // :( Oh my God! This script spec is designed in a way that a parser library is generally useless!!!
-use std::fs::{self, File};
-use std::io::{self, prelude::*, BufReader};
-use std::process::Command;
-
-use super::{
-    matrix::{transform, Matrix},
-    PPMImg, screen::Screen,
+use std::{
+    fs::File,
+    io::{self, prelude::*, BufReader},
+    process::Command,
 };
+
+use crate::graphics::{matrix::transform, utils, Matrix, PPMImg, Screen};
 
 pub struct DWScript {
     filename: String,
     edges: Matrix,
     trans: Matrix,
+    polygons: Matrix,
     img: PPMImg,
     tmpfile_name: String,
 }
@@ -75,12 +75,14 @@ impl DWScript {
         DWScript {
             filename: filename.to_string(),
             edges: Matrix::new_edge_matrix(),
+            polygons: Matrix::new_polygon_matrix(),
             trans: Matrix::ident(4),
             img: PPMImg::new(500, 500, 255),
             tmpfile_name: String::from("tmp.ppm"),
         }
     }
-    pub fn do_parse(&mut self) -> Matrix {
+
+    pub fn do_parse(&mut self) {
         let _f = File::open(&self.filename).expect("Error opening file");
         let f = BufReader::new(_f);
         let mut lines = f.lines().enumerate();
@@ -101,58 +103,46 @@ impl DWScript {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let scale: Vec<f64> = parse_floats(dline);
                     assert_eq!(3, scale.len());
-                    self.trans = self.trans._mul(&transform::scale(scale[0], scale[1], scale[2]));
+                    self.trans *= transform::scale(scale[0], scale[1], scale[2]);
                 }
                 "move" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let mv: Vec<f64> = parse_floats(dline);
                     assert_eq!(3, mv.len());
-                    self.trans = self.trans._mul(&transform::mv(mv[0], mv[1], mv[2]));
+                    self.trans *= transform::mv(mv[0], mv[1], mv[2]);
                 }
                 "rotate" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let v: Vec<&str> = dline.split(' ').collect();
                     let (scale, deg): (&str, f64) =
                         (v[0], v[1].parse().expect("Error parsing number"));
-                    let rotate = match scale {
+                    self.trans *= match scale {
                         "x" => transform::rotatex(deg),
                         "y" => transform::rotatey(deg),
                         "z" => transform::rotatez(deg),
                         _ => panic!("Unknown rotation axis on line {}", _dnum),
                     };
-                    self.trans = self.trans._mul(&rotate);
                 }
                 "apply" => {
-                    self.edges = self.edges._mul(&self.trans);
+                    self.edges *= &self.trans;
+                    self.polygons *= &self.trans;
                 }
                 "display" => {
                     self.img.clear();
                     self.img.render_edge_matrix(&self.edges);
-                    self.img
-                        .write_binary(self.tmpfile_name.as_str())
-                        .expect("Error writing to file");
-                    let mut cmd = if cfg!(windows) {
-                        Command::new("imdisplay")
-                    } else {
-                        Command::new("display")
-                    };
-                    let mut display = cmd
-                        // .arg("-flip")
-                        .arg(self.tmpfile_name.as_str())
-                        .spawn()
-                        .unwrap();
-                    let _result = display.wait().unwrap();
-                    fs::remove_file(self.tmpfile_name.as_str()).expect("Error removing tmp file");
+                    self.img.render_polygon_matrix(&self.polygons);
+                    utils::display_ppm(&self.img);
                 }
                 "save" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     self.img.clear();
                     self.img.render_edge_matrix(&self.edges);
+                    self.img.render_polygon_matrix(&self.polygons);
                     self.img
                         .write_binary(dline.as_str())
                         .expect("Error writing to file");
 
-                    // if a .ing is wanted, then convert to .png
+                    // if a .png is wanted, then convert to .png
                     if dline.ends_with(".png") {
                         Command::new("convert")
                             .arg(dline.as_str())
@@ -186,28 +176,28 @@ impl DWScript {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let v = parse_floats(dline);
                     assert_eq!(6, v.len());
-                    self.edges.add_box((v[0], v[1], v[2]), v[3], v[4], v[5]);
+                    self.polygons.add_box((v[0], v[1], v[2]), v[3], v[4], v[5]);
                 }
                 "sphere" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let v = parse_floats(dline);
                     assert_eq!(4, v.len());
-                    self.edges.add_sphere((v[0], v[1], v[2]), v[3]);
+                    self.polygons.add_sphere((v[0], v[1], v[2]), v[3]);
                 }
                 "torus" => {
                     let (_dnum, dline) = getline_or_error(&mut lines);
                     let v = parse_floats(dline);
                     assert_eq!(5, v.len());
-                    self.edges.add_torus((v[0], v[1], v[2]), v[3], v[4]);
+                    self.polygons.add_torus((v[0], v[1], v[2]), v[3], v[4]);
                 }
                 "clear" => {
                     self.edges.clear();
+                    self.polygons.clear();
                 }
                 _ => panic!("Unrecognized command on line {}: {}", num, line),
             }
         }
-
-        self.edges.clone()
+        // (self.edges.clone(), self.polygons.clone())
     }
 }
 

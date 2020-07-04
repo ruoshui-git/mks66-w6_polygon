@@ -59,7 +59,11 @@ pub(crate) fn display_ppm(img: &PPMImg) {
     } else {
         Command::new("display")
     };
-    let mut display = cmd.arg("-flip").arg(tmpfile_name).spawn().unwrap();
+    let mut display = cmd
+        // .arg("-flip")
+        .arg(tmpfile_name)
+        .spawn()
+        .unwrap();
     let _result = display.wait().unwrap();
     fs::remove_file(tmpfile_name).expect("Error removing tmp file");
 }
