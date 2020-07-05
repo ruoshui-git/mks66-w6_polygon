@@ -40,7 +40,7 @@ use std::{
     process::Command,
 };
 
-use crate::graphics::{matrix::transform, utils, Matrix, PPMImg, Screen};
+use crate::graphics::{matrix::transform, utils, Matrix, PPMImg, Canvas};
 
 pub struct DWScript {
     filename: String,

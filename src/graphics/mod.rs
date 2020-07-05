@@ -4,7 +4,7 @@ pub mod colors;
 pub mod matrix;
 pub mod parametrics;
 pub mod parser;
-pub mod screen;
+pub mod canvas;
 pub mod utils;
 pub mod vector;
 
@@ -18,7 +18,7 @@ use std::{
 // re-exports
 pub use colors::{HSL, RGB};
 pub use matrix::Matrix;
-pub use screen::Screen;
+pub use canvas::Canvas;
 
 // internal use
 use utils::create_file;
@@ -171,7 +171,7 @@ impl PPMImg {
 
 }
 
-impl Screen for PPMImg {
+impl Canvas for PPMImg {
     /// plot a point on this PPMImg at (x, y)
     fn plot(&mut self, x: i32, y: i32) -> () {
         if let Some(index) = self.index(x, y) {

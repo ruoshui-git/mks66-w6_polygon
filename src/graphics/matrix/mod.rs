@@ -108,6 +108,7 @@ impl Matrix {
         self.data.as_slice().chunks(self.ncols)
     }
 
+    /// Returns an mut_iter for iterating row by row
     pub fn mut_iter_by_row(&mut self) -> impl Iterator<Item = &mut [f64]> {
         self.data.as_mut_slice().chunks_exact_mut(self.ncols)
     }

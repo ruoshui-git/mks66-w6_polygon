@@ -8,7 +8,7 @@ use crate::graphics::{
 // mod turtle;
 // turtle will cause problems with
 
-pub trait Screen {
+pub trait Canvas {
     /// Plot a point on the screen at (`x`, `y`), must be impl'ed
     fn plot(&mut self, x: i32, y: i32);
 

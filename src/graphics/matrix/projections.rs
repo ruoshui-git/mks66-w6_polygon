@@ -1,4 +1,4 @@
-use crate::graphics::matrix::Matrix;
+use crate::graphics::{utils::mapper, matrix::Matrix};
 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_model_view_projection#Perspective_matrix
 
@@ -39,6 +39,23 @@ pub fn orthographic(left: f64, right: f64, bottom: f64, top: f64, near: f64, far
               0.,         0.,   2. * nf, 0.,
         row4col1,   row4col2,  row4col3, 1.,
     ])
+}
+
+impl Matrix {
+
+    /// Convert matrix in ndc coordinates to device coordinates
+    ///
+    /// This should be used only after perspective divide and before rendered onto the canvas
+    pub fn ndc_n1to1_to_device(&mut self, width: f64, height: f64) {
+        let map_width = mapper(-1., 1., 0., width);
+        let map_height = mapper(-1., 1., 0., height);
+
+        for row in self.mut_iter_by_row() {
+            row[0] = map_width(-row[0]);
+            row[1] = map_height(row[1]);
+        }
+
+    }
 }
 
 #[cfg(test)]

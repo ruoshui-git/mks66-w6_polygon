@@ -1,4 +1,4 @@
-use super::Screen;
+use super::Canvas;
 use crate::graphics::{utils::polar_to_xy, RGB};
 
 pub struct Turtle {
@@ -6,16 +6,16 @@ pub struct Turtle {
     y: f64,
     pub angle_deg: f64,
     pub pen_down: bool,
-    img: Box<dyn Screen>,
+    img: Box<dyn Canvas>,
 }
 
 impl Turtle {
-    /// Creates a turtle for Screen
+    /// Creates a turtle for Canvas
     /// ## Warning
     /// Img will move into a Turtle, so any new bindings to the current instance of PPMImg will be invalid.
     ///
     /// And therefore only one Turtle is allowed at a time for an Img.
-    fn new(screen: Box<dyn Screen>, x: f64, y: f64) -> Turtle {
+    fn new(screen: Box<dyn Canvas>, x: f64, y: f64) -> Turtle {
         Turtle {
             x,
             y,
@@ -59,7 +59,7 @@ impl Turtle {
     /// Get the inner PPMImg instance
     ///
     /// This method will move the turtle
-    pub fn get_ppm_img(self) -> Box<dyn Screen> {
+    pub fn get_ppm_img(self) -> Box<dyn Canvas> {
         self.img
     }
 }
