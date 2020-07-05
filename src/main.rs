@@ -34,7 +34,7 @@ fn main() {
             * transform::mv(0., 0., mv);
 
         // now apply perspective
-        let mut model = model._mul(&projections::perspective(90., 1., 1., 600.));
+        let mut model = model * projections::perspective(90., 1., 1., 600.);
         model.perspective_divide();
         model.ndc_n1to1_to_device(img.width() as f64, img.height() as f64);
         img.render_polygon_matrix(&model);
